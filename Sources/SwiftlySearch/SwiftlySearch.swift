@@ -21,7 +21,7 @@ import SwiftUI
 import Combine
 
 public extension View {
-    public func navigationBarSearch(_ searchText: Binding<String>) -> some View {
+    func navigationBarSearch(_ searchText: Binding<String>) -> some View {
         return overlay(SearchBar(text: searchText).frame(width: 0, height: 0))
     }
 }
