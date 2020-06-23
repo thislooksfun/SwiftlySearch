@@ -21,8 +21,8 @@ import SwiftUI
 import Combine
 
 public extension View {
-    func navigationBarSearch(_ searchText: Binding<String>, placeholder: String? = nil, hidesNavigationBarDuringPresentation: Bool = true) -> some View {
-        return overlay(SearchBar(text: searchText, placeholder: placeholder, hidesNavigationBarDuringPresentation: hidesNavigationBarDuringPresentation).frame(width: 0, height: 0))
+    func navigationBarSearch(_ searchText: Binding<String>, placeholder: String? = nil, hidesNavigationBarDuringPresentation: Bool = true, hidesSearchBarWhenScrolling: Bool = true) -> some View {
+        return overlay(SearchBar(text: searchText, placeholder: placeholder, hidesNavigationBarDuringPresentation: hidesNavigationBarDuringPresentation, hidesSearchBarWhenScrolling: hidesSearchBarWhenScrolling).frame(width: 0, height: 0))
     }
 }
 
@@ -31,11 +31,13 @@ fileprivate struct SearchBar: UIViewControllerRepresentable {
     var text: String
     let placeholder: String?
     let hidesNavigationBarDuringPresentation: Bool
+    let hidesSearchBarWhenScrolling: Bool
     
-    init(text: Binding<String>, placeholder: String?, hidesNavigationBarDuringPresentation: Bool) {
+    init(text: Binding<String>, placeholder: String?, hidesNavigationBarDuringPresentation: Bool, hidesSearchBarWhenScrolling: Bool) {
         self._text = text
         self.placeholder = placeholder
         self.hidesNavigationBarDuringPresentation = hidesNavigationBarDuringPresentation
+        self.hidesSearchBarWhenScrolling = hidesSearchBarWhenScrolling
     }
     
     func makeUIViewController(context: Context) -> SearchBarWrapperController {
@@ -44,6 +46,7 @@ fileprivate struct SearchBar: UIViewControllerRepresentable {
     
     func updateUIViewController(_ controller: SearchBarWrapperController, context: Context) {
         controller.searchController = context.coordinator.searchController
+        controller.hidesSearchBarWhenScrolling = hidesSearchBarWhenScrolling
     }
     
     func makeCoordinator() -> Coordinator {
@@ -94,11 +97,22 @@ fileprivate struct SearchBar: UIViewControllerRepresentable {
             }
         }
         
+        var hidesSearchBarWhenScrolling: Bool = true {
+            didSet {
+                self.parent?.navigationItem.hidesSearchBarWhenScrolling = hidesSearchBarWhenScrolling
+            }
+        }
+        
         override func viewWillAppear(_ animated: Bool) {
             self.parent?.navigationItem.searchController = searchController
         }
         override func viewDidAppear(_ animated: Bool) {
             self.parent?.navigationItem.searchController = searchController
+        }
+        
+        private func setup() {
+            self.parent?.navigationItem.searchController = searchController
+            self.parent?.navigationItem.hidesSearchBarWhenScrolling = hidesSearchBarWhenScrolling
         }
     }
 }
