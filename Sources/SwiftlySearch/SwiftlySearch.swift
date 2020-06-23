@@ -22,22 +22,28 @@ import Combine
 
 public extension View {
     func navigationBarSearch(_ searchText: Binding<String>, placeholder: String? = nil, hidesNavigationBarDuringPresentation: Bool = true, hidesSearchBarWhenScrolling: Bool = true) -> some View {
-        return overlay(SearchBar(text: searchText, placeholder: placeholder, hidesNavigationBarDuringPresentation: hidesNavigationBarDuringPresentation, hidesSearchBarWhenScrolling: hidesSearchBarWhenScrolling).frame(width: 0, height: 0))
+        return overlay(SearchBar<AnyView>(text: searchText, placeholder: placeholder, hidesNavigationBarDuringPresentation: hidesNavigationBarDuringPresentation, hidesSearchBarWhenScrolling: hidesSearchBarWhenScrolling).frame(width: 0, height: 0))
+    }
+    
+    func navigationBarSearch<ResultContent: View>(_ searchText: Binding<String>, placeholder: String? = nil, hidesNavigationBarDuringPresentation: Bool = true, hidesSearchBarWhenScrolling: Bool = true, @ViewBuilder resultContent: @escaping (String) -> ResultContent) -> some View {
+        return overlay(SearchBar(text: searchText, placeholder: placeholder, hidesNavigationBarDuringPresentation: hidesNavigationBarDuringPresentation, hidesSearchBarWhenScrolling: hidesSearchBarWhenScrolling, resultContent: resultContent).frame(width: 0, height: 0))
     }
 }
 
-fileprivate struct SearchBar: UIViewControllerRepresentable {
+fileprivate struct SearchBar<ResultContent: View>: UIViewControllerRepresentable {
     @Binding
     var text: String
     let placeholder: String?
     let hidesNavigationBarDuringPresentation: Bool
     let hidesSearchBarWhenScrolling: Bool
+    let resultContent: (String) -> ResultContent?
     
-    init(text: Binding<String>, placeholder: String?, hidesNavigationBarDuringPresentation: Bool, hidesSearchBarWhenScrolling: Bool) {
+    init(text: Binding<String>, placeholder: String?, hidesNavigationBarDuringPresentation: Bool, hidesSearchBarWhenScrolling: Bool, @ViewBuilder resultContent: @escaping (String) -> ResultContent? = { _ in nil }) {
         self._text = text
         self.placeholder = placeholder
         self.hidesNavigationBarDuringPresentation = hidesNavigationBarDuringPresentation
         self.hidesSearchBarWhenScrolling = hidesSearchBarWhenScrolling
+        self.resultContent = resultContent
     }
     
     func makeUIViewController(context: Context) -> SearchBarWrapperController {
@@ -47,10 +53,13 @@ fileprivate struct SearchBar: UIViewControllerRepresentable {
     func updateUIViewController(_ controller: SearchBarWrapperController, context: Context) {
         controller.searchController = context.coordinator.searchController
         controller.hidesSearchBarWhenScrolling = hidesSearchBarWhenScrolling
+        if let resultView = resultContent(text) {
+            (controller.searchController?.searchResultsController as? UIHostingController<ResultContent>)?.rootView = resultView
+        }
     }
     
     func makeCoordinator() -> Coordinator {
-        return Coordinator(text: $text, placeholder: placeholder, hidesNavigationBarDuringPresentation: hidesNavigationBarDuringPresentation)
+        return Coordinator(text: $text, placeholder: placeholder, hidesNavigationBarDuringPresentation: hidesNavigationBarDuringPresentation, resultContent: resultContent)
     }
     
     class Coordinator: NSObject, UISearchResultsUpdating {
@@ -60,9 +69,12 @@ fileprivate struct SearchBar: UIViewControllerRepresentable {
         
         private var subscription: AnyCancellable?
         
-        init(text: Binding<String>, placeholder: String?, hidesNavigationBarDuringPresentation: Bool) {
+        init(text: Binding<String>, placeholder: String?, hidesNavigationBarDuringPresentation: Bool, resultContent: (String) -> ResultContent?) {
             self._text = text
-            self.searchController = UISearchController(searchResultsController: nil)
+            
+            let resultView = resultContent(text.wrappedValue)
+            let searchResultController = resultView.map { UIHostingController(rootView: $0) }
+            self.searchController = UISearchController(searchResultsController: searchResultController)
             
             super.init()
             
