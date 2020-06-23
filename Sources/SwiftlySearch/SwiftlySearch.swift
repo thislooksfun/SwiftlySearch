@@ -116,10 +116,10 @@ fileprivate struct SearchBar<ResultContent: View>: UIViewControllerRepresentable
         }
         
         override func viewWillAppear(_ animated: Bool) {
-            self.parent?.navigationItem.searchController = searchController
+            setup()
         }
         override func viewDidAppear(_ animated: Bool) {
-            self.parent?.navigationItem.searchController = searchController
+            setup()
         }
         
         private func setup() {
