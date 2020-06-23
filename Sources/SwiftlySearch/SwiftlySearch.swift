@@ -21,20 +21,21 @@ import SwiftUI
 import Combine
 
 public extension View {
-    func navigationBarSearch(_ searchText: Binding<String>, placeholder: String? = nil) -> some View {
-        return overlay(SearchBar(text: searchText, placeholder: placeholder).frame(width: 0, height: 0))
+    func navigationBarSearch(_ searchText: Binding<String>, placeholder: String? = nil, hidesNavigationBarDuringPresentation: Bool = true) -> some View {
+        return overlay(SearchBar(text: searchText, placeholder: placeholder, hidesNavigationBarDuringPresentation: hidesNavigationBarDuringPresentation).frame(width: 0, height: 0))
     }
 }
 
 fileprivate struct SearchBar: UIViewControllerRepresentable {
     @Binding
     var text: String
-    
     let placeholder: String?
+    let hidesNavigationBarDuringPresentation: Bool
     
-    init(text: Binding<String>, placeholder: String?) {
+    init(text: Binding<String>, placeholder: String?, hidesNavigationBarDuringPresentation: Bool) {
         self._text = text
         self.placeholder = placeholder
+        self.hidesNavigationBarDuringPresentation = hidesNavigationBarDuringPresentation
     }
     
     func makeUIViewController(context: Context) -> SearchBarWrapperController {
@@ -46,7 +47,7 @@ fileprivate struct SearchBar: UIViewControllerRepresentable {
     }
     
     func makeCoordinator() -> Coordinator {
-        return Coordinator(text: $text, placeholder: placeholder)
+        return Coordinator(text: $text, placeholder: placeholder, hidesNavigationBarDuringPresentation: hidesNavigationBarDuringPresentation)
     }
     
     class Coordinator: NSObject, UISearchResultsUpdating {
@@ -56,14 +57,14 @@ fileprivate struct SearchBar: UIViewControllerRepresentable {
         
         private var subscription: AnyCancellable?
         
-        init(text: Binding<String>, placeholder: String?) {
+        init(text: Binding<String>, placeholder: String?, hidesNavigationBarDuringPresentation: Bool) {
             self._text = text
             self.searchController = UISearchController(searchResultsController: nil)
             
             super.init()
             
             searchController.searchResultsUpdater = self
-            searchController.hidesNavigationBarDuringPresentation = true
+            searchController.hidesNavigationBarDuringPresentation = hidesNavigationBarDuringPresentation
             searchController.obscuresBackgroundDuringPresentation = false
             
             if let placeholder = placeholder {
