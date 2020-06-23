@@ -21,8 +21,8 @@ import SwiftUI
 import Combine
 
 public extension View {
-    func navigationBarSearch(_ searchText: Binding<String>) -> some View {
-        return overlay(SearchBar(text: searchText).frame(width: 0, height: 0))
+    func navigationBarSearch(_ searchText: Binding<String>, placeholder: String? = nil) -> some View {
+        return overlay(SearchBar(text: searchText, placeholder: placeholder).frame(width: 0, height: 0))
     }
 }
 
@@ -30,8 +30,11 @@ fileprivate struct SearchBar: UIViewControllerRepresentable {
     @Binding
     var text: String
     
-    init(text: Binding<String>) {
+    let placeholder: String?
+    
+    init(text: Binding<String>, placeholder: String?) {
         self._text = text
+        self.placeholder = placeholder
     }
     
     func makeUIViewController(context: Context) -> SearchBarWrapperController {
@@ -43,7 +46,7 @@ fileprivate struct SearchBar: UIViewControllerRepresentable {
     }
     
     func makeCoordinator() -> Coordinator {
-        return Coordinator(text: $text)
+        return Coordinator(text: $text, placeholder: placeholder)
     }
     
     class Coordinator: NSObject, UISearchResultsUpdating {
@@ -53,7 +56,7 @@ fileprivate struct SearchBar: UIViewControllerRepresentable {
         
         private var subscription: AnyCancellable?
         
-        init(text: Binding<String>) {
+        init(text: Binding<String>, placeholder: String?) {
             self._text = text
             self.searchController = UISearchController(searchResultsController: nil)
             
@@ -62,6 +65,10 @@ fileprivate struct SearchBar: UIViewControllerRepresentable {
             searchController.searchResultsUpdater = self
             searchController.hidesNavigationBarDuringPresentation = true
             searchController.obscuresBackgroundDuringPresentation = false
+            
+            if let placeholder = placeholder {
+                searchController.searchBar.placeholder = placeholder
+            }
             
             self.searchController.searchBar.text = self.text
             self.subscription = self.text.publisher.sink { _ in
