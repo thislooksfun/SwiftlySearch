@@ -125,6 +125,9 @@ fileprivate struct SearchBar<ResultContent: View>: UIViewControllerRepresentable
         private func setup() {
             self.parent?.navigationItem.searchController = searchController
             self.parent?.navigationItem.hidesSearchBarWhenScrolling = hidesSearchBarWhenScrolling
+            
+            // make search bar appear at start (default behaviour since iOS 13)
+            self.parent?.navigationController?.navigationBar.sizeToFit()
         }
     }
 }
