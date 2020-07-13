@@ -75,7 +75,9 @@ fileprivate struct SearchBar: UIViewControllerRepresentable {
         
         func updateSearchResults(for searchController: UISearchController) {
             guard let text = searchController.searchBar.text else { return }
-            self.text = text
+            DispatchQueue.main.async {
+                self.text = text
+            }
         }
     }
     
