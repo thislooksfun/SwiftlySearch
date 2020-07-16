@@ -24,7 +24,7 @@ public extension View {
     func navigationBarSearch(_ searchText: Binding<String>, placeholder: String? = nil, hidesNavigationBarDuringPresentation: Bool = true, hidesSearchBarWhenScrolling: Bool = true) -> some View {
         return overlay(SearchBar<AnyView>(text: searchText, placeholder: placeholder, hidesNavigationBarDuringPresentation: hidesNavigationBarDuringPresentation, hidesSearchBarWhenScrolling: hidesSearchBarWhenScrolling).frame(width: 0, height: 0))
     }
-    
+
     func navigationBarSearch<ResultContent: View>(_ searchText: Binding<String>, placeholder: String? = nil, hidesNavigationBarDuringPresentation: Bool = true, hidesSearchBarWhenScrolling: Bool = true, @ViewBuilder resultContent: @escaping (String) -> ResultContent) -> some View {
         return overlay(SearchBar(text: searchText, placeholder: placeholder, hidesNavigationBarDuringPresentation: hidesNavigationBarDuringPresentation, hidesSearchBarWhenScrolling: hidesSearchBarWhenScrolling, resultContent: resultContent).frame(width: 0, height: 0))
     }
@@ -37,7 +37,7 @@ fileprivate struct SearchBar<ResultContent: View>: UIViewControllerRepresentable
     let hidesNavigationBarDuringPresentation: Bool
     let hidesSearchBarWhenScrolling: Bool
     let resultContent: (String) -> ResultContent?
-    
+
     init(text: Binding<String>, placeholder: String?, hidesNavigationBarDuringPresentation: Bool, hidesSearchBarWhenScrolling: Bool, @ViewBuilder resultContent: @escaping (String) -> ResultContent? = { _ in nil }) {
         self._text = text
         self.placeholder = placeholder
@@ -45,11 +45,11 @@ fileprivate struct SearchBar<ResultContent: View>: UIViewControllerRepresentable
         self.hidesSearchBarWhenScrolling = hidesSearchBarWhenScrolling
         self.resultContent = resultContent
     }
-    
+
     func makeUIViewController(context: Context) -> SearchBarWrapperController {
         return SearchBarWrapperController()
     }
-    
+
     func updateUIViewController(_ controller: SearchBarWrapperController, context: Context) {
         controller.searchController = context.coordinator.searchController
         controller.hidesSearchBarWhenScrolling = hidesSearchBarWhenScrolling
@@ -57,45 +57,45 @@ fileprivate struct SearchBar<ResultContent: View>: UIViewControllerRepresentable
             (controller.searchController?.searchResultsController as? UIHostingController<ResultContent>)?.rootView = resultView
         }
     }
-    
+
     func makeCoordinator() -> Coordinator {
         return Coordinator(text: $text, placeholder: placeholder, hidesNavigationBarDuringPresentation: hidesNavigationBarDuringPresentation, resultContent: resultContent)
     }
-    
+
     class Coordinator: NSObject, UISearchResultsUpdating {
         @Binding
         var text: String
         let searchController: UISearchController
-        
+
         private var subscription: AnyCancellable?
-        
+
         init(text: Binding<String>, placeholder: String?, hidesNavigationBarDuringPresentation: Bool, resultContent: (String) -> ResultContent?) {
             self._text = text
-            
+
             let resultView = resultContent(text.wrappedValue)
             let searchResultController = resultView.map { UIHostingController(rootView: $0) }
             self.searchController = UISearchController(searchResultsController: searchResultController)
-            
+
             super.init()
-            
+
             searchController.searchResultsUpdater = self
             searchController.hidesNavigationBarDuringPresentation = hidesNavigationBarDuringPresentation
             searchController.obscuresBackgroundDuringPresentation = false
-            
+
             if let placeholder = placeholder {
                 searchController.searchBar.placeholder = placeholder
             }
-            
+
             self.searchController.searchBar.text = self.text
             self.subscription = self.text.publisher.sink { _ in
                 self.searchController.searchBar.text = self.text
             }
         }
-        
+
         deinit {
             self.subscription?.cancel()
         }
-        
+
         func updateSearchResults(for searchController: UISearchController) {
             guard let text = searchController.searchBar.text else { return }
             DispatchQueue.main.async {
@@ -103,31 +103,31 @@ fileprivate struct SearchBar<ResultContent: View>: UIViewControllerRepresentable
             }
         }
     }
-    
+
     class SearchBarWrapperController: UIViewController {
         var searchController: UISearchController? {
             didSet {
                 self.parent?.navigationItem.searchController = searchController
             }
         }
-        
+
         var hidesSearchBarWhenScrolling: Bool = true {
             didSet {
                 self.parent?.navigationItem.hidesSearchBarWhenScrolling = hidesSearchBarWhenScrolling
             }
         }
-        
+
         override func viewWillAppear(_ animated: Bool) {
             setup()
         }
         override func viewDidAppear(_ animated: Bool) {
             setup()
         }
-        
+
         private func setup() {
             self.parent?.navigationItem.searchController = searchController
             self.parent?.navigationItem.hidesSearchBarWhenScrolling = hidesSearchBarWhenScrolling
-            
+
             // make search bar appear at start (default behaviour since iOS 13)
             self.parent?.navigationController?.navigationBar.sizeToFit()
         }
