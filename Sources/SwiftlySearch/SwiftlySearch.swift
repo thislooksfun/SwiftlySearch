@@ -24,9 +24,17 @@ public extension View {
     func navigationBarSearch(_ searchText: Binding<String>, placeholder: String? = nil, hidesNavigationBarDuringPresentation: Bool = true, hidesSearchBarWhenScrolling: Bool = true) -> some View {
         return overlay(SearchBar<AnyView>(text: searchText, placeholder: placeholder, hidesNavigationBarDuringPresentation: hidesNavigationBarDuringPresentation, hidesSearchBarWhenScrolling: hidesSearchBarWhenScrolling).frame(width: 0, height: 0))
     }
+    
+    func navigationBarSearch(_ searchText: Binding<String>, placeholder: String? = nil, hidesNavigationBarDuringPresentation: Bool = true, hidesSearchBarWhenScrolling: Bool = true, onReturn: @escaping () -> Void) -> some View {
+        return overlay(SearchBar<AnyView>(text: searchText, placeholder: placeholder, hidesNavigationBarDuringPresentation: hidesNavigationBarDuringPresentation, hidesSearchBarWhenScrolling: hidesSearchBarWhenScrolling, onReturn: onReturn).frame(width: 0, height: 0))
+    }
 
     func navigationBarSearch<ResultContent: View>(_ searchText: Binding<String>, placeholder: String? = nil, hidesNavigationBarDuringPresentation: Bool = true, hidesSearchBarWhenScrolling: Bool = true, @ViewBuilder resultContent: @escaping (String) -> ResultContent) -> some View {
         return overlay(SearchBar(text: searchText, placeholder: placeholder, hidesNavigationBarDuringPresentation: hidesNavigationBarDuringPresentation, hidesSearchBarWhenScrolling: hidesSearchBarWhenScrolling, resultContent: resultContent).frame(width: 0, height: 0))
+    }
+    
+    func navigationBarSearch<ResultContent: View>(_ searchText: Binding<String>, placeholder: String? = nil, hidesNavigationBarDuringPresentation: Bool = true, hidesSearchBarWhenScrolling: Bool = true, @ViewBuilder resultContent: @escaping (String) -> ResultContent, onReturn: @escaping () -> Void) -> some View {
+        return overlay(SearchBar(text: searchText, placeholder: placeholder, hidesNavigationBarDuringPresentation: hidesNavigationBarDuringPresentation, hidesSearchBarWhenScrolling: hidesSearchBarWhenScrolling, resultContent: resultContent, onReturn: onReturn).frame(width: 0, height: 0))
     }
 }
 
@@ -37,13 +45,15 @@ fileprivate struct SearchBar<ResultContent: View>: UIViewControllerRepresentable
     let hidesNavigationBarDuringPresentation: Bool
     let hidesSearchBarWhenScrolling: Bool
     let resultContent: (String) -> ResultContent?
+    let onReturn: () -> Void
 
-    init(text: Binding<String>, placeholder: String?, hidesNavigationBarDuringPresentation: Bool, hidesSearchBarWhenScrolling: Bool, @ViewBuilder resultContent: @escaping (String) -> ResultContent? = { _ in nil }) {
+    init(text: Binding<String>, placeholder: String?, hidesNavigationBarDuringPresentation: Bool, hidesSearchBarWhenScrolling: Bool, @ViewBuilder resultContent: @escaping (String) -> ResultContent? = { _ in nil }, onReturn: @escaping () -> Void = {}) {
         self._text = text
         self.placeholder = placeholder
         self.hidesNavigationBarDuringPresentation = hidesNavigationBarDuringPresentation
         self.hidesSearchBarWhenScrolling = hidesSearchBarWhenScrolling
         self.resultContent = resultContent
+        self.onReturn = onReturn
     }
 
     func makeUIViewController(context: Context) -> SearchBarWrapperController {
@@ -59,28 +69,31 @@ fileprivate struct SearchBar<ResultContent: View>: UIViewControllerRepresentable
     }
 
     func makeCoordinator() -> Coordinator {
-        return Coordinator(text: $text, placeholder: placeholder, hidesNavigationBarDuringPresentation: hidesNavigationBarDuringPresentation, resultContent: resultContent)
+        return Coordinator(text: $text, placeholder: placeholder, hidesNavigationBarDuringPresentation: hidesNavigationBarDuringPresentation, resultContent: resultContent, onReturn: onReturn)
     }
 
     class Coordinator: NSObject, UISearchResultsUpdating {
         @Binding
         var text: String
         let searchController: UISearchController
+        let onReturn: () -> Void
 
         private var subscription: AnyCancellable?
 
-        init(text: Binding<String>, placeholder: String?, hidesNavigationBarDuringPresentation: Bool, resultContent: (String) -> ResultContent?) {
+        init(text: Binding<String>, placeholder: String?, hidesNavigationBarDuringPresentation: Bool, resultContent: (String) -> ResultContent?, onReturn: @escaping () -> Void) {
             self._text = text
 
             let resultView = resultContent(text.wrappedValue)
             let searchResultController = resultView.map { UIHostingController(rootView: $0) }
             self.searchController = UISearchController(searchResultsController: searchResultController)
-
+            self.onReturn = onReturn
+            
             super.init()
 
             searchController.searchResultsUpdater = self
             searchController.hidesNavigationBarDuringPresentation = hidesNavigationBarDuringPresentation
             searchController.obscuresBackgroundDuringPresentation = false
+            searchController.searchBar.searchTextField.addTarget(self, action: #selector(keyboardDidEndOnExit), for: UIControl.Event.editingDidEndOnExit)
 
             if let placeholder = placeholder {
                 searchController.searchBar.placeholder = placeholder
@@ -101,6 +114,10 @@ fileprivate struct SearchBar<ResultContent: View>: UIViewControllerRepresentable
             DispatchQueue.main.async {
                 self.text = text
             }
+        }
+        
+        @objc func  keyboardDidEndOnExit() {
+            onReturn()
         }
     }
 
