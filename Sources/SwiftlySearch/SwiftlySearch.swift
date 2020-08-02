@@ -21,12 +21,12 @@ import SwiftUI
 import Combine
 
 public extension View {
-    func navigationBarSearch(_ searchText: Binding<String>, placeholder: String? = nil, hidesNavigationBarDuringPresentation: Bool = true, hidesSearchBarWhenScrolling: Bool = true, searchClicked: @escaping () -> Void = {}) -> some View {
-        return overlay(SearchBar<AnyView>(text: searchText, placeholder: placeholder, hidesNavigationBarDuringPresentation: hidesNavigationBarDuringPresentation, hidesSearchBarWhenScrolling: hidesSearchBarWhenScrolling, searchClicked: searchClicked).frame(width: 0, height: 0))
+    func navigationBarSearch(_ searchText: Binding<String>, placeholder: String? = nil, hidesNavigationBarDuringPresentation: Bool = true, hidesSearchBarWhenScrolling: Bool = true, cancelClicked: @escaping () -> Void = {}, searchClicked: @escaping () -> Void = {}) -> some View {
+        return overlay(SearchBar<AnyView>(text: searchText, placeholder: placeholder, hidesNavigationBarDuringPresentation: hidesNavigationBarDuringPresentation, hidesSearchBarWhenScrolling: hidesSearchBarWhenScrolling, cancelClicked: cancelClicked, searchClicked: searchClicked).frame(width: 0, height: 0))
     }
 
-    func navigationBarSearch<ResultContent: View>(_ searchText: Binding<String>, placeholder: String? = nil, hidesNavigationBarDuringPresentation: Bool = true, hidesSearchBarWhenScrolling: Bool = true, searchClicked: @escaping () -> Void = {}, @ViewBuilder resultContent: @escaping (String) -> ResultContent) -> some View {
-        return overlay(SearchBar(text: searchText, placeholder: placeholder, hidesNavigationBarDuringPresentation: hidesNavigationBarDuringPresentation, hidesSearchBarWhenScrolling: hidesSearchBarWhenScrolling, searchClicked: searchClicked, resultContent: resultContent).frame(width: 0, height: 0))
+    func navigationBarSearch<ResultContent: View>(_ searchText: Binding<String>, placeholder: String? = nil, hidesNavigationBarDuringPresentation: Bool = true, hidesSearchBarWhenScrolling: Bool = true, cancelClicked: @escaping () -> Void = {}, searchClicked: @escaping () -> Void = {}, @ViewBuilder resultContent: @escaping (String) -> ResultContent) -> some View {
+        return overlay(SearchBar(text: searchText, placeholder: placeholder, hidesNavigationBarDuringPresentation: hidesNavigationBarDuringPresentation, hidesSearchBarWhenScrolling: hidesSearchBarWhenScrolling, cancelClicked: cancelClicked, searchClicked: searchClicked, resultContent: resultContent).frame(width: 0, height: 0))
     }
 }
 
@@ -36,14 +36,16 @@ fileprivate struct SearchBar<ResultContent: View>: UIViewControllerRepresentable
     let placeholder: String?
     let hidesNavigationBarDuringPresentation: Bool
     let hidesSearchBarWhenScrolling: Bool
+    let cancelClicked: () -> Void
     let searchClicked: () -> Void
     let resultContent: (String) -> ResultContent?
 
-    init(text: Binding<String>, placeholder: String?, hidesNavigationBarDuringPresentation: Bool, hidesSearchBarWhenScrolling: Bool, searchClicked: @escaping () -> Void, @ViewBuilder resultContent: @escaping (String) -> ResultContent? = { _ in nil }) {
+    init(text: Binding<String>, placeholder: String?, hidesNavigationBarDuringPresentation: Bool, hidesSearchBarWhenScrolling: Bool, cancelClicked: @escaping () -> Void, searchClicked: @escaping () -> Void, @ViewBuilder resultContent: @escaping (String) -> ResultContent? = { _ in nil }) {
         self._text = text
         self.placeholder = placeholder
         self.hidesNavigationBarDuringPresentation = hidesNavigationBarDuringPresentation
         self.hidesSearchBarWhenScrolling = hidesSearchBarWhenScrolling
+        self.cancelClicked = cancelClicked
         self.searchClicked = searchClicked
         self.resultContent = resultContent
     }
@@ -61,19 +63,21 @@ fileprivate struct SearchBar<ResultContent: View>: UIViewControllerRepresentable
     }
 
     func makeCoordinator() -> Coordinator {
-        return Coordinator(text: $text, placeholder: placeholder, hidesNavigationBarDuringPresentation: hidesNavigationBarDuringPresentation, resultContent: resultContent, searchClicked: searchClicked)
+        return Coordinator(text: $text, placeholder: placeholder, hidesNavigationBarDuringPresentation: hidesNavigationBarDuringPresentation, resultContent: resultContent, cancelClicked: cancelClicked, searchClicked: searchClicked)
     }
 
     class Coordinator: NSObject, UISearchResultsUpdating, UISearchBarDelegate {
         @Binding
         var text: String
+        let cancelClicked: () -> Void
         let searchClicked: () -> Void
         let searchController: UISearchController
 
         private var subscription: AnyCancellable?
 
-        init(text: Binding<String>, placeholder: String?, hidesNavigationBarDuringPresentation: Bool, resultContent: (String) -> ResultContent?, searchClicked: @escaping () -> Void) {
+        init(text: Binding<String>, placeholder: String?, hidesNavigationBarDuringPresentation: Bool, resultContent: (String) -> ResultContent?, cancelClicked: @escaping () -> Void, searchClicked: @escaping () -> Void) {
             self._text = text
+            self.cancelClicked = cancelClicked
             self.searchClicked = searchClicked
 
             let resultView = resultContent(text.wrappedValue)
@@ -111,6 +115,9 @@ fileprivate struct SearchBar<ResultContent: View>: UIViewControllerRepresentable
 
 
         // MARK: - UISearchBarDelegate
+        func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+            self.cancelClicked()
+        }
         func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
             self.searchClicked()
         }
