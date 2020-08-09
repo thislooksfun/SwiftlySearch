@@ -57,6 +57,7 @@ fileprivate struct SearchBar<ResultContent: View>: UIViewControllerRepresentable
     func updateUIViewController(_ controller: SearchBarWrapperController, context: Context) {
         controller.searchController = context.coordinator.searchController
         controller.hidesSearchBarWhenScrolling = hidesSearchBarWhenScrolling
+        controller.text = text
         if let resultView = resultContent(text) {
             (controller.searchController?.searchResultsController as? UIHostingController<ResultContent>)?.rootView = resultView
         }
@@ -72,8 +73,6 @@ fileprivate struct SearchBar<ResultContent: View>: UIViewControllerRepresentable
         let cancelClicked: () -> Void
         let searchClicked: () -> Void
         let searchController: UISearchController
-
-        private var subscription: AnyCancellable?
 
         init(text: Binding<String>, placeholder: String?, hidesNavigationBarDuringPresentation: Bool, resultContent: (String) -> ResultContent?, cancelClicked: @escaping () -> Void, searchClicked: @escaping () -> Void) {
             self._text = text
@@ -96,13 +95,6 @@ fileprivate struct SearchBar<ResultContent: View>: UIViewControllerRepresentable
             }
 
             self.searchController.searchBar.text = self.text
-            self.subscription = self.text.publisher.sink { _ in
-                self.searchController.searchBar.text = self.text
-            }
-        }
-
-        deinit {
-            self.subscription?.cancel()
         }
 
         // MARK: - UISearchResultsUpdating
@@ -124,6 +116,12 @@ fileprivate struct SearchBar<ResultContent: View>: UIViewControllerRepresentable
     }
 
     class SearchBarWrapperController: UIViewController {
+        var text: String? {
+            didSet {
+                self.parent?.navigationItem.searchController?.searchBar.text = text
+            }
+        }
+
         var searchController: UISearchController? {
             didSet {
                 self.parent?.navigationItem.searchController = searchController
