@@ -1,0 +1,14 @@
+name: Tests
+
+on: [push]
+
+jobs:
+  test:
+    name: Test
+    runs-on: macos-10.15
+    steps:
+      - run: brew install xcodegen
+      - run: gem install xcpretty
+      - run: |
+          set -o pipefail
+          xcodebuild -project Test.xcodeproj -scheme TestApp -sdk iphonesimulator13.6 -destination platform=iOS Simulator,OS=13.6,name=iPhone 11 test | xcpretty
