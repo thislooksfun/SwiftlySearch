@@ -9,6 +9,8 @@ jobs:
     steps:
       - run: brew install xcodegen
       - run: gem install xcpretty
-      - run: |
+      - name: Run tests
+        run: |
           set -o pipefail
+          xcodegen
           xcodebuild -project Test.xcodeproj -scheme TestApp -sdk iphonesimulator13.6 -destination "platform=iOS Simulator,OS=13.6,name=iPhone 11" test | xcpretty
