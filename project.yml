@@ -1,0 +1,64 @@
+name: Test
+
+options:
+  bundleIdPrefix: "fun.thislooks"
+  groupSortPosition: top
+  createIntermediateGroups: true
+
+settings:
+  base:
+    PRODUCT_BUNDLE_IDENTIFIER: fun.thislooks.TestApp
+
+targets:
+  TestApp:
+    type: application
+    platform: iOS
+    deploymentTarget: "13.5"
+    sources:
+      - path: Tests/TestApp
+      - path: Sources/SwiftlySearch/SwiftlySearch.swift
+
+  UnitTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "13.5"
+    dependencies:
+      - target: TestApp
+    sources:
+      - path: Tests/UnitTests
+
+  UITests:
+    type: bundle.ui-testing
+    platform: iOS
+    deploymentTarget: "13.5"
+    dependencies:
+      - target: TestApp
+    sources:
+      - path: Tests/UITests
+
+schemes:
+  TestApp:
+    build:
+      targets:
+        TestApp: all
+        UnitTests: [test]
+        UITests: [test]
+    test:
+      targets:
+        - UnitTests
+        - UITests
+  UnitTests:
+    templates:
+      - TestScheme
+  UITests:
+    templates:
+      - TestScheme
+
+schemeTemplates:
+  TestScheme:
+    build:
+      targets:
+        ${scheme_name}: [test, run]
+    test:
+      targets:
+        - ${scheme_name}
