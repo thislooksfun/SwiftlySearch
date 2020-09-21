@@ -12,6 +12,8 @@ jobs:
         run: |
           brew install xcodegen
           gem install xcpretty
+      - name: Change Xcode version
+        run: sudo xcode-select -s "/Applications/Xcode_12.app"
       - name: Run tests
         run: |
           set -o pipefail
