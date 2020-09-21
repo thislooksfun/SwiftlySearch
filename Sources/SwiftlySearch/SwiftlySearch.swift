@@ -30,7 +30,7 @@ public extension View {
     }
 }
 
-fileprivate struct SearchBar<ResultContent: View>: UIViewControllerRepresentable {
+struct SearchBar<ResultContent: View>: UIViewControllerRepresentable {
     @Binding
     var text: String
     let placeholder: String?
