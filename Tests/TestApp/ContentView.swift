@@ -11,6 +11,14 @@ struct ContentView: View {
                 NavigationLink(destination: BindingTest()) {
                     Text("Binding")
                 }
+
+                NavigationLink(destination: PlaceholderTest()) {
+                    Text("Placeholder")
+                }
+
+                NavigationLink(destination: CallbackUpdateTest()) {
+                    Text("Callback Update")
+                }
             }
             .navigationBarTitle("Tests")
         }

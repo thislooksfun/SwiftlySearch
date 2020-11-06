@@ -58,6 +58,9 @@ struct SearchBar<ResultContent: View>: UIViewControllerRepresentable {
         controller.searchController = context.coordinator.searchController
         controller.hidesSearchBarWhenScrolling = hidesSearchBarWhenScrolling
         controller.text = text
+
+        context.coordinator.update(placeholder: placeholder, cancelClicked: cancelClicked, searchClicked: searchClicked)
+
         if let resultView = resultContent(text) {
             (controller.searchController?.searchResultsController as? UIHostingController<ResultContent>)?.rootView = resultView
         }
@@ -70,8 +73,8 @@ struct SearchBar<ResultContent: View>: UIViewControllerRepresentable {
     class Coordinator: NSObject, UISearchResultsUpdating, UISearchBarDelegate {
         @Binding
         var text: String
-        let cancelClicked: () -> Void
-        let searchClicked: () -> Void
+        var cancelClicked: () -> Void
+        var searchClicked: () -> Void
         let searchController: UISearchController
 
         init(text: Binding<String>, placeholder: String?, hidesNavigationBarDuringPresentation: Bool, resultContent: (String) -> ResultContent?, cancelClicked: @escaping () -> Void, searchClicked: @escaping () -> Void) {
@@ -90,11 +93,15 @@ struct SearchBar<ResultContent: View>: UIViewControllerRepresentable {
             searchController.obscuresBackgroundDuringPresentation = false
 
             searchController.searchBar.delegate = self
-            if let placeholder = placeholder {
-                searchController.searchBar.placeholder = placeholder
-            }
+            searchController.searchBar.text = self.text
+            searchController.searchBar.placeholder = placeholder
+        }
 
-            self.searchController.searchBar.text = self.text
+        func update(placeholder: String?, cancelClicked: @escaping () -> Void, searchClicked: @escaping () -> Void) {
+            searchController.searchBar.placeholder = placeholder
+
+            self.cancelClicked = cancelClicked
+            self.searchClicked = searchClicked
         }
 
         // MARK: - UISearchResultsUpdating
