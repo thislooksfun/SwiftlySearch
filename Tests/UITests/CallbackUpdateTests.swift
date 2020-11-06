@@ -18,8 +18,7 @@ class CallbackUpdateTests: UITest {
         app.buttons["callbacks button"].tap()
 
         searchBar.tap()
-        searchBar.typeText("hello")
-        app.keyboards.buttons["search"].tap()
+        searchBar.typeText("hello\n")
         XCTAssertNotEqual(searchVal, app.staticTexts["do search text"].label, "search callback updated")
 
         navBar.buttons["Cancel"].tap()
