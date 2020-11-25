@@ -19,6 +19,10 @@ struct ContentView: View {
                 NavigationLink(destination: CallbackUpdateTest()) {
                     Text("Callback Update")
                 }
+
+                NavigationLink(destination: ObservablePublishedTest()) {
+                    Text("Observable Published")
+                }
             }
             .navigationBarTitle("Tests")
         }
