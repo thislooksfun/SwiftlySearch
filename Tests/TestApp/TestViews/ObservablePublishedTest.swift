@@ -1,7 +1,17 @@
+import Combine
 import SwiftUI
 
 class ObservablePublishedModel: ObservableObject {
     @Published var searchText = ""
+    @Published var updateCount = 0
+    var cancellable: Cancellable?
+
+    init() {
+        cancellable = $searchText
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink() { [weak self] _ in self?.updateCount += 1 }
+    }
 }
 
 struct ObservablePublishedTest: View {
@@ -9,7 +19,8 @@ struct ObservablePublishedTest: View {
 
     var body: some View {
         List {
-            Text("foo")
+            Text("Update count: \(viewModel.updateCount)")
+                .accessibility(identifier: "countLabel")
         }
         .navigationBarSearch($viewModel.searchText)
     }

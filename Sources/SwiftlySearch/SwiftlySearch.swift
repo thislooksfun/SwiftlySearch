@@ -73,12 +73,14 @@ struct SearchBar<ResultContent: View>: UIViewControllerRepresentable {
     class Coordinator: NSObject, UISearchResultsUpdating, UISearchBarDelegate {
         @Binding
         var text: String
+        var updatedText: String
         var cancelClicked: () -> Void
         var searchClicked: () -> Void
         let searchController: UISearchController
 
         init(text: Binding<String>, placeholder: String?, hidesNavigationBarDuringPresentation: Bool, resultContent: (String) -> ResultContent?, cancelClicked: @escaping () -> Void, searchClicked: @escaping () -> Void) {
             self._text = text
+            updatedText = text.wrappedValue
             self.cancelClicked = cancelClicked
             self.searchClicked = searchClicked
 
@@ -106,8 +108,9 @@ struct SearchBar<ResultContent: View>: UIViewControllerRepresentable {
 
         // MARK: - UISearchResultsUpdating
         func updateSearchResults(for searchController: UISearchController) {
-            guard let text = searchController.searchBar.text else { return }
+            guard let text = searchController.searchBar.text, updatedText != text else { return }
             DispatchQueue.main.async {
+                self.updatedText = text
                 self.text = text
             }
         }
@@ -125,7 +128,6 @@ struct SearchBar<ResultContent: View>: UIViewControllerRepresentable {
     class SearchBarWrapperController: UIViewController {
         var text: String? {
             didSet {
-                guard oldValue != text else { return }
                 self.parent?.navigationItem.searchController?.searchBar.text = text
             }
         }
