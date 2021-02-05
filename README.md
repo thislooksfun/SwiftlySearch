@@ -52,3 +52,46 @@ struct MRE: View {
   }
 }
 ```
+
+
+## Known issues:
+
+([#12](https://github.com/thislooksfun/SwiftlySearch/issues/12)) `NavigationLink`s inside the `resultContent` don't work. This is a limitation of the UIKit/SwiftUI interaction, and thus out of my hands. If you require a seperate view for displaying search results you can use a workaround like shown below:
+```swift
+struct ContentView: View {
+    @State
+    var searchText: String = ""
+
+    var body: some View {
+        NavigationView {
+            ZStack {
+                if searchText.isEmpty {
+                    NormalView()
+                } else {
+                    SearchResultsView(text: searchText)
+                }
+            }
+            .navigationBarSearch($searchText)
+        }
+    }
+}
+
+struct NormalView: View {
+    var body: some View {
+        Text("Some view")
+    }
+}
+
+struct SearchResultsView: View {
+    var text: String
+
+    var body: some View {
+        VStack {
+            Text("You searched for \(text)")
+            NavigationLink(destination: Text(text)) {
+                Text("Let's go!")
+            }
+        }
+    }
+}
+```
