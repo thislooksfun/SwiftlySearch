@@ -30,7 +30,7 @@ If applicable, add screenshots to help explain your problem.
 **Platform (please complete the following information):**
  - Device: [e.g. iPhone12]
  - OS: [e.g. iOS 14]
- - SwiftlySearch Version [e.g. 1.2.3]
+ - SwiftlySearch Version: [e.g. 1.2.3]
 
 **Additional context**
 Add any other context about the problem here.
