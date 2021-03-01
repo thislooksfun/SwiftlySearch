@@ -109,7 +109,10 @@ struct SearchBar<ResultContent: View>: UIViewControllerRepresentable {
 
         // MARK: - UISearchResultsUpdating
         func updateSearchResults(for searchController: UISearchController) {
-            guard let text = searchController.searchBar.text, updatedText != text else { return }
+            guard let text = searchController.searchBar.text else { return }
+            // Make sure the text has actually changed (workaround for #10).
+            guard updatedText != text else { return }
+
             DispatchQueue.main.async {
                 self.updatedText = text
                 self.text = text
