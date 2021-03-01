@@ -73,10 +73,11 @@ struct SearchBar<ResultContent: View>: UIViewControllerRepresentable {
     class Coordinator: NSObject, UISearchResultsUpdating, UISearchBarDelegate {
         @Binding
         var text: String
-        var updatedText: String
         var cancelClicked: () -> Void
         var searchClicked: () -> Void
         let searchController: UISearchController
+
+        private var updatedText: String
 
         init(text: Binding<String>, placeholder: String?, hidesNavigationBarDuringPresentation: Bool, resultContent: (String) -> ResultContent?, cancelClicked: @escaping () -> Void, searchClicked: @escaping () -> Void) {
             self._text = text
