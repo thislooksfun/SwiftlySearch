@@ -1,17 +1,27 @@
-// I was unable to get this test to work, but I'm leaving it in as a reminder for the future.
+import Combine
+import XCTest
+@testable import TestApp
 
-//import XCTest
-//
-//class ObservablePublishedTests: UITest {
-//    func testObservablePublishedMetric() throws {
-//        selectTest("Observable Published")
-//
-//        measure(metrics: [XCTCPUMetric(application: app)]) {
-//            app.children(matching: .any).firstMatch.slowSwipeDown(offset: 0.5, distance: 0.1)
-//
-//            // Ensure the searchbar exists.
-//            let navBar = app.navigationBars.firstMatch
-//            XCTAssertTrue(navBar.children(matching: .searchField).firstMatch.exists, "Searchbar exists")
-//        }
-//    }
-//}
+class ObservablePublishedTests: UITest {
+
+    func testObservablePublishedMetric() throws {
+        selectTest("Observable Published")
+
+        app.children(matching: .any).firstMatch.slowSwipeDown(offset: 0.5, distance: 0.1)
+        let searchBar = app.navigationBars.firstMatch.children(matching: .searchField).firstMatch
+        searchBar.tap()
+
+        searchBar.typeText("h")
+        XCTAssertEqual(app.staticTexts["countLabel"].label, "Update count: 1")
+
+        searchBar.typeText("e")
+        XCTAssertEqual(app.staticTexts["countLabel"].label, "Update count: 2")
+
+        searchBar.typeText("llo")
+        XCTAssertEqual(app.staticTexts["countLabel"].label, "Update count: 5")
+
+        searchBar.typeText(XCUIKeyboardKey.delete.rawValue)
+        searchBar.typeText(XCUIKeyboardKey.delete.rawValue)
+        XCTAssertEqual(app.staticTexts["countLabel"].label, "Update count: 7")
+    }
+}

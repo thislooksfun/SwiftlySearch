@@ -77,8 +77,11 @@ struct SearchBar<ResultContent: View>: UIViewControllerRepresentable {
         var searchClicked: () -> Void
         let searchController: UISearchController
 
+        private var updatedText: String
+
         init(text: Binding<String>, placeholder: String?, hidesNavigationBarDuringPresentation: Bool, resultContent: (String) -> ResultContent?, cancelClicked: @escaping () -> Void, searchClicked: @escaping () -> Void) {
             self._text = text
+            updatedText = text.wrappedValue
             self.cancelClicked = cancelClicked
             self.searchClicked = searchClicked
 
@@ -108,8 +111,10 @@ struct SearchBar<ResultContent: View>: UIViewControllerRepresentable {
         func updateSearchResults(for searchController: UISearchController) {
             guard let text = searchController.searchBar.text else { return }
             // Make sure the text has actually changed (workaround for #10).
-            guard text != self.text else { return }
+            guard updatedText != text else { return }
+
             DispatchQueue.main.async {
+                self.updatedText = text
                 self.text = text
             }
         }
