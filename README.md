@@ -1,11 +1,10 @@
-# THIS PROJECT IS DEPRECATED
+# THIS PROJECT IS OBSOLETE
 
-iOS 15 introduced [`.searchable()`](<https://developer.apple.com/documentation/swiftui/form/searchable(text:placement:)>), which is an official, native,
-first-party search bar for SwiftUI. As such this project is no longer necessary.
-I will continue to keep it around for projects that need to support older
-versions, but it will no longer be actively developed and you should switch to
-the new system once you have the choice. Thank you all for your support, and
-happy coding!
+iOS 15 introduced [`.searchable()`][searchable], which is an official search bar
+implementation for SwiftUI. As such this project is now obsolete. I will
+continue to keep it around as a polyfill for apps targeting \<iOS 15, but it
+will no longer be actively developed and you should switch to the new system as
+soon as you can. Thank you all for your support, and happy coding!
 
 # SwiftlySearch
 
@@ -104,3 +103,7 @@ struct SearchResultsView: View {
     }
 }
 ```
+
+<!-- Links -->
+
+[searchable]: https://developer.apple.com/documentation/swiftui/form/searchable(text:placement:)
