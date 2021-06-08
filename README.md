@@ -1,3 +1,12 @@
+# THIS PROJECT IS DEPRECATED
+
+iOS 15 introduced [`.searchable()`](<https://developer.apple.com/documentation/swiftui/form/searchable(text:placement:)>), which is an official, native,
+first-party search bar for SwiftUI. As such this project is no longer necessary.
+I will continue to keep it around for projects that need to support older
+versions, but it will no longer be actively developed and you should switch to
+the new system once you have the choice. Thank you all for your support, and
+happy coding!
+
 # SwiftlySearch
 
 A small, lightweight UISearchController wrapper for SwiftUI
@@ -53,10 +62,10 @@ struct MRE: View {
 }
 ```
 
-
 ## Known issues:
 
 ([#12](https://github.com/thislooksfun/SwiftlySearch/issues/12)) `NavigationLink`s inside the `resultContent` don't work. This is a limitation of the UIKit/SwiftUI interaction, and thus out of my hands. If you require a seperate view for displaying search results you can use a workaround like shown below:
+
 ```swift
 struct ContentView: View {
     @State

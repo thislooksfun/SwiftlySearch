@@ -21,10 +21,14 @@ import SwiftUI
 import Combine
 
 public extension View {
+    @available(iOS, introduced: 13.0, deprecated: 15.0, message: "Use .searchable() and .onSubmit(of:) instead.")
+    @available(macCatalyst, introduced: 13.0, deprecated: 15.0, message: "Use .searchable() and .onSubmit(of:) instead.")
     func navigationBarSearch(_ searchText: Binding<String>, placeholder: String? = nil, hidesNavigationBarDuringPresentation: Bool = true, hidesSearchBarWhenScrolling: Bool = true, cancelClicked: @escaping () -> Void = {}, searchClicked: @escaping () -> Void = {}) -> some View {
         return overlay(SearchBar<AnyView>(text: searchText, placeholder: placeholder, hidesNavigationBarDuringPresentation: hidesNavigationBarDuringPresentation, hidesSearchBarWhenScrolling: hidesSearchBarWhenScrolling, cancelClicked: cancelClicked, searchClicked: searchClicked).frame(width: 0, height: 0))
     }
 
+    @available(iOS, introduced: 13.0, deprecated: 15.0, message: "Use .searchable() and .onSubmit(of:) instead.")
+    @available(macCatalyst, introduced: 13.0, deprecated: 15.0, message: "Use .searchable() and .onSubmit(of:) instead.")
     func navigationBarSearch<ResultContent: View>(_ searchText: Binding<String>, placeholder: String? = nil, hidesNavigationBarDuringPresentation: Bool = true, hidesSearchBarWhenScrolling: Bool = true, cancelClicked: @escaping () -> Void = {}, searchClicked: @escaping () -> Void = {}, @ViewBuilder resultContent: @escaping (String) -> ResultContent) -> some View {
         return overlay(SearchBar(text: searchText, placeholder: placeholder, hidesNavigationBarDuringPresentation: hidesNavigationBarDuringPresentation, hidesSearchBarWhenScrolling: hidesSearchBarWhenScrolling, cancelClicked: cancelClicked, searchClicked: searchClicked, resultContent: resultContent).frame(width: 0, height: 0))
     }
